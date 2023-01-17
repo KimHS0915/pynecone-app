@@ -1,61 +1,56 @@
 """Welcome to Pynecone! This file outlines the steps to create a basic app."""
-from pcconfig import config
+
+import random
 
 import pynecone as pc
 
-docs_url = "https://pynecone.io/docs/getting-started/introduction"
-filename = f"{config.app_name}/{config.app_name}.py"
 
+class CountState(pc.State):
+    count: int = 0
 
-class State(pc.State):
-    text: str = 'Hello World'
-    color: str = 'red'
+    def increment(self):
+        self.count = self.count + 1 if self.count < 100 else 0
 
-    def flip_color(self):
-        if self.color == 'red':
-            self.color = 'blue'
-        else:
-            self.color = 'red'
+    def decrement(self):
+        self.count = self.count - 1 if self.count > 0 else 100
+
+    def randomize(self):
+        self.count = random.randint(0, 100)
 
 
 def index():
     return pc.center(
         pc.vstack(
-            pc.heading("Welcome to Pynecone!", font_size="2em"),
-            pc.badge(
-                State.text,
-                color_scheme=State.color,
-                on_click=State.flip_color,
-                font_size='1.5em',
-                _hover={
-                    'cursor': 'pointer',
-                }
+            pc.heading(CountState.count, font_size='2em'),
+            pc.hstack(
+                pc.button(
+                    'Decrement',
+                    color_scheme='red',
+                    border_radius='1em',
+                    on_click=CountState.decrement,
+                ),
+                pc.button(
+                    'Increment',
+                    color_scheme='blue',
+                    border_radius='1em',
+                    on_click=CountState.increment,
+                ),
+                pc.button(
+                    'Randomize',
+                    color_scheme='green',
+                    border_radius='1em',
+                    on_click=CountState.randomize,
+                ),
+                padding='2em',
             ),
-            pc.button(
-                'Hello Pynecone',
-                border_radius='1em',
-                box_shadow="rgba(151, 65, 252, 0.8) 0 15px 30px -10px",
-                background_image="linear-gradient(144deg,#AF40FF,#5B42F3 50%,#00DDEB)",
-                box_sizing="border-box",
-                color="white",
-                _hover={
-                    "opacity": 0.85,
-                },
-                on_click=State.flip_color,
-            ),
-            spacing="1.5em",
-            font_size="2em",
-        ),
-        padding_top="10%",
+            padding_y='10em',
+            font_size='1em',
+            text_align='center',
+        )
     )
 
 
-def about():
-    return pc.text('About')
-
-
 # Add state and page to the app.
-app = pc.App(state=State)
-app.add_page(index)
-app.add_page(about)
+app = pc.App(state=CountState)
+app.add_page(index, title='Counter')
 app.compile()
