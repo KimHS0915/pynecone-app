@@ -1,56 +1,65 @@
 """Welcome to Pynecone! This file outlines the steps to create a basic app."""
 
-import random
-
 import pynecone as pc
 
 
-class CountState(pc.State):
-    count: int = 0
+class TodoState(pc.State):
+    items = []
+    new_item: str
 
-    def increment(self):
-        self.count = self.count + 1 if self.count < 100 else 0
+    def add_item(self):
+        self.items += [self.new_item]
+        self.new_item = ''
 
-    def decrement(self):
-        self.count = self.count - 1 if self.count > 0 else 100
-
-    def randomize(self):
-        self.count = random.randint(0, 100)
+    def finish_item(self, item):
+        self.items = [i for i in self.items if i != item]
 
 
-def index():
-    return pc.center(
-        pc.vstack(
-            pc.heading(CountState.count, font_size='2em'),
-            pc.hstack(
-                pc.button(
-                    'Decrement',
-                    color_scheme='red',
-                    border_radius='1em',
-                    on_click=CountState.decrement,
-                ),
-                pc.button(
-                    'Increment',
-                    color_scheme='blue',
-                    border_radius='1em',
-                    on_click=CountState.increment,
-                ),
-                pc.button(
-                    'Randomize',
-                    color_scheme='green',
-                    border_radius='1em',
-                    on_click=CountState.randomize,
-                ),
-                padding='2em',
+def render_item(item):
+    return pc.list_item(
+        pc.hstack(
+            pc.checkbox(
+                size='lg',
+                color_scheme='red'
             ),
-            padding_y='10em',
-            font_size='1em',
-            text_align='center',
+            pc.text(item, font_size='1.25em'),
+            pc.button(
+                'del',
+                on_click=lambda: TodoState.finish_item(item),
+                height='1.5em',
+                background_color='white',
+                border='1px solid blue',
+            ),
+        )
+    )
+
+
+def todo_list():
+    return pc.container(
+        pc.vstack(
+            pc.heading('Todo List'),
+            pc.hstack(
+                pc.input(
+                        on_blur=TodoState.set_new_item,
+                        placeholder='Add a todo ...',
+                        bg='white',
+                ),
+                pc.button('Add', on_click=TodoState.add_item, bg='white'),
+            ),
+            pc.divider(),
+            pc.ordered_list(
+                pc.foreach(TodoState.items, lambda item: render_item(item)),
+            ),
+            bg='white',
+            margin='5em',
+            padding='2em',
+            border_radius='0.5em',
+            shadow='lg',
         )
     )
 
 
 # Add state and page to the app.
-app = pc.App(state=CountState)
-app.add_page(index, title='Counter')
+app = pc.App(state=TodoState)
+app.add_page(todo_list, title='Todo List', path='/')
 app.compile()
